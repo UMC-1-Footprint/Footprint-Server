@@ -1,4 +1,10 @@
 package com.umc.footprint.oauth.entity;
 
-public class ProviderType {
+import lombok.Getter;
+
+@Getter
+public enum ProviderType {
+    GOOGLE,
+    KAKAO,
+    LOCAL;
 }
