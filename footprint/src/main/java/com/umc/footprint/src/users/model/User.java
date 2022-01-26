@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "USER")
-public class UserOAuth {
+public class User {
     @JsonIgnore
     @Id
     @Column(name = "USER_SEQ")
@@ -70,7 +70,7 @@ public class UserOAuth {
     @NotNull
     private LocalDateTime modifiedAt;
 
-    public UserOAuth(
+    public User(
             @NotNull @Size(max = 64) String userId,
             @NotNull @Size(max = 100) String username,
             @NotNull @Size(max = 512) String email,

@@ -9,7 +9,7 @@ import com.umc.footprint.oauth.handler.OAuth2AuthenticationFailureHandler;
 import com.umc.footprint.oauth.handler.OAuth2AuthenticationSuccessHandler;
 import com.umc.footprint.oauth.handler.TokenAccessDeniedHandler;
 import com.umc.footprint.oauth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository;
-import com.umc.footprint.oauth.service.CustomOAuth2UserService;
+import com.umc.footprint.oauth.service.Custom2UserService;
 import com.umc.footprint.oauth.service.CustomUserDetailsService;
 import com.umc.footprint.oauth.token.AuthTokenProvider;
 import com.umc.footprint.src.users.UserRefreshTokenRepository;
@@ -38,7 +38,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final AppProperties appProperties;
     private final AuthTokenProvider tokenProvider;
     private final CustomUserDetailsService userDetailsService;
-    private final CustomOAuth2UserService oAuth2UserService;
+    private final Custom2UserService oAuth2UserService;
     private final TokenAccessDeniedHandler tokenAccessDeniedHandler;
     private final UserRefreshTokenRepository userRefreshTokenRepository;
 

@@ -7,7 +7,7 @@ import com.umc.footprint.oauth.exception.OAuthProviderMissMatchException;
 import com.umc.footprint.oauth.info.OAuth2UserInfo;
 import com.umc.footprint.oauth.info.OAuth2UserInfoFactory;
 import com.umc.footprint.src.users.UserRepository;
-import com.umc.footprint.src.users.model.UserOAuth;
+import com.umc.footprint.src.users.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -16,12 +16,11 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import javax.naming.AuthenticationException;
 import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+public class Custom2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
 
     @Override
@@ -40,7 +39,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         ProviderType providerType = ProviderType.valueOf(userRequest.getClientRegistration().getRegistrationId().toUpperCase());
 
         OAuth2UserInfo userInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(providerType, user.getAttributes());
-        UserOAuth savedUser = userRepository.findByUserOAuthId(userInfo.getId());
+        User savedUser = userRepository.findByUserId(userInfo.getId());
 
         if (savedUser != null) {
             if (providerType != savedUser.getProviderType()) {
@@ -58,9 +57,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
 
-    private UserOAuth createUser(OAuth2UserInfo userInfo, ProviderType providerType) {
+    private User createUser(OAuth2UserInfo userInfo, ProviderType providerType) {
         LocalDateTime now = LocalDateTime.now();
-        UserOAuth userOAuth = new UserOAuth(
+        User user = new User(
                 userInfo.getId(),
                 userInfo.getName(),
                 userInfo.getEmail(),
@@ -71,10 +70,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 now
         );
 
-        return userRepository.saveAndFlush(userOAuth);
+        return userRepository.saveAndFlush(user);
     }
 
-    private UserOAuth updateUser(UserOAuth user, OAuth2UserInfo userInfo) {
+    private User updateUser(User user, OAuth2UserInfo userInfo) {
         if (userInfo.getName() != null && !user.getUsername().equals(userInfo.getName())) {
             user.setUsername(userInfo.getName());
         }

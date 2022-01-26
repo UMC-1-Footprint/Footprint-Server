@@ -1,6 +1,6 @@
 package com.umc.footprint.oauth.entity;
 
-import com.umc.footprint.src.users.model.UserOAuth;
+import com.umc.footprint.src.users.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -84,18 +84,18 @@ public class UserPrincipal implements OAuth2User, UserDetails, OidcUser {
         return null;
     }
 
-    public static UserPrincipal create(UserOAuth userOAuth) {
+    public static UserPrincipal create(User user) {
         return new UserPrincipal(
-                userOAuth.getUserId(),
-                userOAuth.getPassword(),
-                userOAuth.getProviderType(),
+                user.getUserId(),
+                user.getPassword(),
+                user.getProviderType(),
                 RoleType.USER,
                 Collections.singletonList(new SimpleGrantedAuthority(RoleType.USER.getCode()))
         );
     }
 
-    public static UserPrincipal create(UserOAuth userOAuth, Map<String, Object> attributes) {
-        UserPrincipal userPrincipal = create(userOAuth);
+    public static UserPrincipal create(User user, Map<String, Object> attributes) {
+        UserPrincipal userPrincipal = create(user);
         userPrincipal.setAttributes(attributes);
 
         return userPrincipal;

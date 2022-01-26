@@ -2,11 +2,9 @@ package com.umc.footprint.src.users;
 
 
 import com.umc.footprint.common.ApiResponse;
-import com.umc.footprint.src.users.model.UserOAuth;
+import com.umc.footprint.src.users.model.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,9 +35,9 @@ public class UserController {
 
     @GetMapping
     public ApiResponse getUser() {
-        org.springframework.security.core.userdetails.User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserOAuth userOAuth = userService.getUser(principal.getUsername());
+        org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userService.getUser(principal.getUsername());
 
-        return ApiResponse.success("userOAuth", userOAuth);
+        return ApiResponse.success("user", user);
     }
 }

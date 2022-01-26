@@ -1,8 +1,7 @@
 package com.umc.footprint.src.users;
 
-import com.umc.footprint.src.users.model.UserOAuth;
+import com.umc.footprint.src.users.model.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,7 +17,7 @@ public class UserService {
 //        this.userProvider = userProvider;
 //    }
 
-    public UserOAuth getUser(String userId) {
-        return userRepository.findByUserOAuthId(userId);
+    public User getUser(String userId) {
+        return userRepository.findByUserId(userId);
     }
 }
