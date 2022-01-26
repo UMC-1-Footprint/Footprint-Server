@@ -14,7 +14,7 @@ public class UserProvider {
         this.userDao = userDao;
     }
 
-    UserOAuth findByUserId(String userId) {
+    UserOAuth findByUserOAuthId(String userId) {
         return userDao.findByUserID(userId);
     }
 }
