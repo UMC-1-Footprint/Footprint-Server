@@ -1,5 +1,6 @@
 package com.umc.footprint.oauth.token;
 
+import com.umc.footprint.oauth.exception.TokenValidFailedException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,7 @@ public class AuthTokenProvider {
 
             User principal = new User(claims.getSubject(), "", authorities);
 
-            // 사용자가 입력한 데이터가 저장된 미인증 Authentication 객체 생성후 반환
+            // 사용자가 입력한 데이터가 저장된 인증 Authentication 객체 생성후 반환
             return new UsernamePasswordAuthenticationToken(principal, authToken, authorities);
         } else {
             throw new TokenValidFailedException();
