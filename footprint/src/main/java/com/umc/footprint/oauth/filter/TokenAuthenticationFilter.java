@@ -2,6 +2,7 @@ package com.umc.footprint.oauth.filter;
 
 import com.umc.footprint.oauth.token.AuthToken;
 import com.umc.footprint.oauth.token.AuthTokenProvider;
+import com.umc.footprint.utils.HeaderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
