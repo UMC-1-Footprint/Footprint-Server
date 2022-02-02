@@ -1,9 +1,16 @@
 package com.umc.footprint;
 
+import com.umc.footprint.config.properties.AppProperties;
+import com.umc.footprint.config.properties.CorsProperties;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties({
+		CorsProperties.class,
+		AppProperties.class
+})
 public class FootprintApplication {
 
 	// 설정 파일 사용 (application.yml, aws.yml)
