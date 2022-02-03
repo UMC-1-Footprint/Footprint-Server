@@ -88,13 +88,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 new Date(now.getTime() + refreshTokenExpiry)
         );
 
+        System.out.println("OAuth2AuthenticationSuccessHandler.determineTargetUrl");
+
         // DB 저장
-        UserRefreshToken userRefreshToken = userRefreshTokenRepository.findByUserId(userInfo.getId());
-        if (userRefreshToken != null) {
-            userRefreshToken.setRefreshToken(refreshToken.getToken());
+        Optional<UserRefreshToken> userRefreshToken = userRefreshTokenRepository.findByUserId(userInfo.getId());
+
+        if (userRefreshToken.isPresent()) {
+            userRefreshToken.get().setRefreshToken(refreshToken.getToken());
         } else {
-            userRefreshToken = new UserRefreshToken(userInfo.getId(), refreshToken.getToken());
-            userRefreshTokenRepository.saveAndFlush(userRefreshToken);
+            userRefreshToken = Optional.of(new UserRefreshToken(userInfo.getId(), refreshToken.getToken()));
+            userRefreshTokenRepository.saveAndFlush(userRefreshToken.get());
         }
 
         int cookieMaxAge = (int) refreshTokenExpiry / 60;

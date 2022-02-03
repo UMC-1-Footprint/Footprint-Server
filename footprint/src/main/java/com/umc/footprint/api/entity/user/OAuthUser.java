@@ -17,58 +17,64 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "USER")
 public class OAuthUser {
-    @JsonIgnore
-    @Id
-    @Column(name = "USER_SEQ")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userSeq;
 
-    @Column(name = "USER_ID", length = 64, unique = true)
-    @NotNull
-    @Size(max = 64)
     private String userId;
 
-    @Column(name = "USERNAME", length = 100)
-    @NotNull
-    @Size(max = 100)
     private String username;
 
-    @JsonIgnore
-    @Column(name = "PASSWORD", length = 128)
-    @NotNull
-    @Size(max = 128)
     private String password;
 
-    @Column(name = "EMAIL", length = 512, unique = true)
-    @NotNull
-    @Size(max = 512)
     private String email;
 
-    @Column(name = "EMAIL_VERIFIED_YN", length = 1)
-    @NotNull
-    @Size(min = 1, max = 1)
     private String emailVerifiedYn;
 
-    @Column(name = "PROVIDER_TYPE", length = 20)
-    @Enumerated(EnumType.STRING)
-    @NotNull
     private ProviderType providerType;
 
-    @Column(name = "ROLE_TYPE", length = 20)
-    @Enumerated(EnumType.STRING)
-    @NotNull
     private RoleType roleType;
 
-    @Column(name = "CREATED_AT")
-    @NotNull
     private LocalDateTime createdAt;
 
-    @Column(name = "MODIFIED_AT")
-    @NotNull
     private LocalDateTime modifiedAt;
+
+    public OAuthUser(
+            Long userSeq,
+            String userId,
+            String username,
+            String email,
+            String emailVerifiedYn,
+            String providerType,
+            String roleType,
+            LocalDateTime createdAt,
+            LocalDateTime modifiedAt
+    ) {
+        this.userSeq = userSeq;
+        this.userId = userId;
+        this.username = username;
+        this.password = "NO_PASS";
+        this.email = email != null ? email : "NO_EMAIL";
+        this.emailVerifiedYn = emailVerifiedYn;
+        System.out.println("providerType = " + providerType);
+        System.out.println("providerType.getClass().getName() = " + providerType.getClass().getName());
+        if (providerType.equals(ProviderType.GOOGLE.toString())) {
+            this.providerType = ProviderType.GOOGLE;
+        } else if (providerType.equals(ProviderType.KAKAO.toString())) {
+            this.providerType = ProviderType.KAKAO;
+        } else {
+            this.providerType = ProviderType.LOCAL;
+        }
+
+        if (roleType.equals(RoleType.USER.toString())) {
+            this.roleType = RoleType.USER;
+        } else if (roleType.equals(RoleType.ADMIN.toString())) {
+            this.roleType = RoleType.ADMIN;
+        } else {
+            this.roleType = RoleType.GUEST;
+        }
+        this.createdAt = createdAt;
+        this.modifiedAt = modifiedAt;
+    }
 
     public OAuthUser(
             @NotNull @Size(max = 64) String userId,

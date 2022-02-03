@@ -5,12 +5,14 @@ import com.umc.footprint.api.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class OAuthUserService {
     private final UserRepository userRepository;
 
-    public OAuthUser getOAuthUser(String userId) {
+    public Optional<OAuthUser> getOAuthUser(String userId) {
         return userRepository.findByUserId(userId);
     }
 }
