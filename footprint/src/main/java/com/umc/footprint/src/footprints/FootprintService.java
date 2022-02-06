@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +27,7 @@ public class FootprintService {
     }
 
     // 발자국 수정 (Patch)
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void modifyFootprint(PatchFootprintReq patchFootprintReq, int footprintIdx) throws BaseException {
         try {
             // validation - 존재하지 않는, 삭제된 발자국
@@ -98,6 +98,7 @@ public class FootprintService {
 
 
     // 발자국 삭제 (PATCH)
+    @Transactional(rollbackFor = Exception.class)
     public void deleteFootprint(int footprintIdx) throws BaseException {
         try {
             int activeFootprint = footprintDao.activeFootprint(footprintIdx);
@@ -121,7 +122,7 @@ public class FootprintService {
     }
 
     // 이미지 URL 생성 > S3 업로드 > Photo 테이블 삽입
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<String> uploadImg(List<MultipartFile> photos, int userIdx, int footprintIdx) throws BaseException {
         List<String> photoList = new ArrayList<>(); // URL 저장할 리스트
 

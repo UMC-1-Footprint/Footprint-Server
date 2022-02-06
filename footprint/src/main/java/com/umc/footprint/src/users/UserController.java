@@ -66,15 +66,15 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @GetMapping("/today")
-    public BaseResponse<List<GetUserTodayRes>> getToday(){
+    public BaseResponse<GetUserTodayRes> getToday(){
         try{
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             System.out.println("userId = " + userId);
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
-
-            List<GetUserTodayRes> userTodayRes = userProvider.getUserToday(userIdx);
+            
+            GetUserTodayRes userTodayRes = userProvider.getUserToday(userIdx);
 
             return new BaseResponse<>(userTodayRes);
         } catch (BaseException exception){

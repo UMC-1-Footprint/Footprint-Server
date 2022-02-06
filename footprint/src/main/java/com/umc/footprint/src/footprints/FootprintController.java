@@ -14,11 +14,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/footprints")
 public class FootprintController {
-    @Autowired
     private final FootprintProvider footprintProvider;
-    @Autowired
     private final FootprintService footprintService;
 
+    @Autowired
     public FootprintController(FootprintProvider footprintProvider, FootprintService footprintService) {
         this.footprintProvider = footprintProvider;
         this.footprintService = footprintService;
@@ -29,7 +28,7 @@ public class FootprintController {
      * [GET] /footprints/:walkidx
      */
     @ResponseBody
-    @GetMapping("{walkIdx}")
+    @GetMapping("/{walkIdx}")
     public BaseResponse<List<GetFootprintRes>> getFootprints(@PathVariable("walkIdx") int walkIdx) {
         try {
             List<GetFootprintRes> getFootprintRes = footprintProvider.getFootprints(walkIdx);

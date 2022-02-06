@@ -5,6 +5,7 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.src.users.model.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -309,7 +310,7 @@ public class UserDao {
     }
 
     // 해당 userIdx를 갖는 오늘 산책 관련 정보 조회
-    public List<GetUserTodayRes> getUserToday(int userIdx){
+    public GetUserTodayRes getUserToday(int userIdx){
         String getUserTodayQuery = "SELECT SUM(W.goalRate) as goalRate, G.walkGoalTime, " +
                 "SUM(TIMESTAMPDIFF(minute,W.startAt,W.endAt)) as walkTime, " +
                 "SUM(W.distance) as distance, " +
@@ -321,14 +322,21 @@ public class UserDao {
                 "GROUP BY G.walkGoalTime ";
         int getUserIdxParam = userIdx;
 
-        return this.jdbcTemplate.query(getUserTodayQuery,
-                (rs, rowNum) -> new GetUserTodayRes(
-                        rs.getFloat("goalRate"),
-                        rs.getInt("walkGoalTime"),
-                        rs.getInt("walkTime"),
-                        rs.getDouble("distance"),
-                        rs.getInt("calorie")
-                ),getUserIdxParam,getUserIdxParam);
+        try {
+            return this.jdbcTemplate.queryForObject(getUserTodayQuery,
+                    (rs, rowNum) -> new GetUserTodayRes(
+                            rs.getFloat("goalRate"),
+                            rs.getInt("walkGoalTime"),
+                            rs.getInt("walkTime"),
+                            rs.getDouble("distance"),
+                            rs.getInt("calorie")
+                    ), getUserIdxParam, getUserIdxParam);
+        } catch(EmptyResultDataAccessException e){
+            String getWalkGoalQuery = "SELECT walkGoalTime FROM Goal WHERE useridx = ? and MONTH(createAt) = MONTH(NOW())";
+            int walkGoalTime = this.jdbcTemplate.queryForObject(getWalkGoalQuery,int.class,userIdx);
+
+            return new GetUserTodayRes(0,walkGoalTime,0,0,0);
+        }
     }
 
     // 해당 userIdx를 갖는 date의 산책 관련 정보 조회
@@ -388,6 +396,7 @@ public class UserDao {
         String getUserQuery = "select userIdx, nickname, username, email, status, User.badgeIdx, badgeUrl, birth, sex, height, weight,\n" +
                 "       (select count(*) from Walk where userIdx=?)+1 as walkNumber\n" +
                 "from User inner join Badge B on User.badgeIdx = B.badgeIdx where userIdx=?";
+
         return this.jdbcTemplate.queryForObject(getUserQuery,
                 (rs, rowNum) -> new GetUserRes(
                         rs.getInt("userIdx"),
