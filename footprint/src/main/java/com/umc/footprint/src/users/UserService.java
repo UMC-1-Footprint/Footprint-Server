@@ -26,9 +26,11 @@ public class UserService {
     }
 
 
-    public BadgeInfo patchRepBadge(int userIdx, int badgeIdx) throws BaseException {
+    // yummy 12
+    @Transactional(rollbackFor = Exception.class)
+    public BadgeInfo modifyRepBadge(int userIdx, int badgeIdx) throws BaseException {
         try {
-            BadgeInfo patchRepBadgeInfo = userDao.patchRepBadge(userIdx, badgeIdx);
+            BadgeInfo patchRepBadgeInfo = userDao.modifyRepBadge(userIdx, badgeIdx);
             return patchRepBadgeInfo;
           } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);

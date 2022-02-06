@@ -33,7 +33,7 @@ public class WalkDao {
         String getTimeQuery = "select date_format(date(startAt), '%Y.%m.%d') as date, \n" +
                 "       date_format(time(startAt),'%H:%i') as startAt,\n" +
                 "       date_format(time(endAt),'%H:%i') as endAt, \n" +
-                "       (timestampdiff(second, startAt, endAt)) as timeString from walk where walkIdx=?;";
+                "       (timestampdiff(second, startAt, endAt)) as timeString from Walk where walkIdx=?;";
         GetWalkTime getWalkTime = this.jdbcTemplate.queryForObject(getTimeQuery,
                 (rs, rowNum) -> new GetWalkTime(
                         rs.getString("date"),
@@ -44,12 +44,12 @@ public class WalkDao {
 
         getWalkTime.convTimeString();
 
-        String getFootCountQuery = "select count(footprintIdx) as footCount from footprint where walkIdx=? and status='ACTIVE';";
+        String getFootCountQuery = "select count(footprintIdx) as footCount from Footprint where walkIdx=? and status='ACTIVE';";
         Integer footCount = this.jdbcTemplate.queryForObject(getFootCountQuery,
                 (rs, rowNum) -> rs.getInt("footCount"), walkIdx);
 
 
-        String getWalkInfoQuery = "select walkIdx, calorie, distance, pathImageUrl from walk where walkIdx=?;";
+        String getWalkInfoQuery = "select walkIdx, calorie, distance, pathImageUrl from Walk where walkIdx=?;";
         GetWalkInfo getWalkInfo = this.jdbcTemplate.queryForObject(getWalkInfoQuery,
                 (rs,rowNum) -> new GetWalkInfo(
                         rs.getInt("walkIdx"),
@@ -63,7 +63,7 @@ public class WalkDao {
     }
 
     public String deleteWalk(int walkIdx) {
-        String deleteWalkQuery = "update footprint set status='INACTIVE' where walkIdx=? and status='ACTIVE';"; // 실행될 동적 쿼리문
+        String deleteWalkQuery = "update Footprint set status='INACTIVE' where walkIdx=? and status='ACTIVE';"; // 실행될 동적 쿼리문
         this.jdbcTemplate.update(deleteWalkQuery, walkIdx);
         //String checkDeleteQuery = "select count(footprintIdx) as footCount from footprint where walkIdx=? and status='ACTIVE';"; // 전체 삭제 확인
         //Integer footCount = this.jdbcTemplate.queryForObject(checkDeleteQuery,

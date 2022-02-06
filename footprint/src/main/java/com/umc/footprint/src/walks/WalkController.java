@@ -91,6 +91,7 @@ public class WalkController {
         }
     }
 
+    //yummy 20
     @ResponseBody
     @GetMapping("/{walkIdx}") // (GET) 127.0.0.1:3000/walks/{walkIdx}
     public BaseResponse<GetWalkInfo> getWalkInfo(@PathVariable("walkIdx") int walkIdx) {

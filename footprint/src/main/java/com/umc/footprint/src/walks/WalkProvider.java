@@ -23,14 +23,12 @@ public class WalkProvider {
 
 
     public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
-        GetWalkInfo getWalkInfo = walkDao.getWalkInfo(walkIdx);
-        return getWalkInfo;
-        /*try {
+        try {
             GetWalkInfo getWalkInfo = walkDao.getWalkInfo(walkIdx);
             return getWalkInfo;
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
-        }*/
+        }
   }
 
     //

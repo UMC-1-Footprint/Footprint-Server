@@ -814,13 +814,14 @@ public class UserDao {
      *** [3] PATCH METHOD
      * */
 
-    public BadgeInfo patchRepBadge(int userIdx, int badgeIdx) {
+    //yummy 12
+    public BadgeInfo modifyRepBadge(int userIdx, int badgeIdx) {
         //TO DO : badgeIdx의 뱃지가 ACTIVE인지 validation 검사하기
-        String patchRepBadgeQuery = "update user set badgeIdx=? where userIdx=?;";
+        String patchRepBadgeQuery = "update User set badgeIdx=? where userIdx=?;";
         Object[] patchRepBadgeParams = new Object[]{badgeIdx, userIdx};
         this.jdbcTemplate.update(patchRepBadgeQuery, patchRepBadgeParams);
 
-        String repBadgeInfoQuery = "select * from badge where badgeIdx=(select badgeIdx from user where userIdx=?);";
+        String repBadgeInfoQuery = "select * from Badge where badgeIdx=(select badgeIdx from User where userIdx=?);";
         BadgeInfo patchRepBadgeInfo = this.jdbcTemplate.queryForObject(repBadgeInfoQuery,
                 (rs, rowNum) -> new BadgeInfo(
                         rs.getInt("badgeIdx"),
@@ -910,9 +911,10 @@ public class UserDao {
 
     // true = 유저 있다 & false = 유저 없다.
     public boolean checkUser(int userIdx, String tableName) throws BaseException {
-        int userCount = this.jdbcTemplate.queryForObject("SELECT count(*) FROM "+ tableName + " WHERE userIdx = ? ",int.class,userIdx);
+        System.out.println("UserDao.checkUser");
+        int userCount = this.jdbcTemplate.queryForObject("SELECT count(*) FROM " + tableName + " WHERE userIdx = ? ", int.class, userIdx);
 
-        if(userCount != 0)
+        if (userCount != 0)
             return true;
         return false;
     }
@@ -931,7 +933,8 @@ public class UserDao {
 
     // 유저 상태 조회 - validation에 사용
     public String getStatus(int userIdx, String tableName) {
-        String getStatusQuery = "select status from "+ tableName + " where userIdx=?";
+        System.out.println("UserDao.getStatus");
+        String getStatusQuery = "select status from " + tableName + " where userIdx=?";
         return this.jdbcTemplate.queryForObject(getStatusQuery, String.class, userIdx);
     }
 
