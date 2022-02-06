@@ -123,6 +123,7 @@ public class UserProvider {
                 throw new BaseException(BLACK_USER);
             }
             GetUserRes getUserRes = userDao.getUser(userIdx);
+
             return getUserRes;
         } catch (Exception exception) {
             exception.printStackTrace();

@@ -36,6 +36,7 @@ public class UserService {
     }
 
     // 닉네임 수정(Patch)
+    @Transactional(rollbackFor = Exception.class)
     public void modifyNickname(PatchNicknameReq patchNicknameReq) throws BaseException {
         try {
             int result = userDao.modifyNickname(patchNicknameReq);
