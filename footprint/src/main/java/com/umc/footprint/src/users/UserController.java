@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
+import com.umc.footprint.src.model.Badge;
+import com.umc.footprint.src.model.UserBadge;
 import com.umc.footprint.src.users.model.*;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -394,7 +397,7 @@ public class UserController {
 
 
 
-    /** yummy 11
+    /** yummy 12
      * 사용자 전체 뱃지 조회 API
      * [GET] /users/badges
      */
@@ -405,7 +408,7 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
+            // userId로 serIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
             GetUserBadges getUserBadges = userProvider.getUserBadges(userIdx);
@@ -580,4 +583,23 @@ public class UserController {
         }
     }
 
+    /** yummy jpa test
+     * 뱃지 조회 API
+     * [GET] /users/test/badges
+     **/
+    @ResponseBody
+    @GetMapping("/test/badges")
+    public BaseResponse<List<UserBadge>> badgeTest(@RequestParam(required = false) Integer userIdx){
+        List<UserBadge> badges = new ArrayList<>();
+        List<Badge> badgeList = new ArrayList<>();
+        userService.findDistinctByUserIdx(userIdx).forEach(e -> badges.add(e));
+        for(UserBadge badge : badges) {
+            System.out.println("badge.getBadgeIdx() = " + badge.getBadgeIdx());
+            userService.findDistinctByBadgeIdx(badge.getBadgeIdx()).forEach(a -> badgeList.add(a));
+        }
+        for(Badge b : badgeList) {
+            System.out.println("b.getBadgeName() = " + b.getBadgeName());
+        }
+        return new BaseResponse<>(badges);
+    }
 }

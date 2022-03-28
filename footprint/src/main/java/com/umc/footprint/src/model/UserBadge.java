@@ -34,4 +34,5 @@ public class UserBadge {
         this.badgeIdx = badgeIdx;
         this.status = status;
     }
+
 }

@@ -6,6 +6,10 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
+import com.umc.footprint.src.model.Badge;
+import com.umc.footprint.src.model.UserBadge;
+import com.umc.footprint.src.repository.BadgeRepository;
+import com.umc.footprint.src.repository.UserBadgeRepository;
 import com.umc.footprint.src.users.model.*;
 
 import com.umc.footprint.utils.AES128;
@@ -32,14 +36,19 @@ public class UserService {
     private final JwtService jwtService;
     private final AwsS3Service awsS3Service;
     private final EncryptProperties encryptProperties;
+    private final UserBadgeRepository userBadgeRepository;
+    private final BadgeRepository badgeRepository;
 
     @Autowired
-    public UserService(UserDao userDao, UserProvider userProvider, JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties) {
+    public UserService(UserDao userDao, UserProvider userProvider, JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties
+            , UserBadgeRepository userBadgeRepository, BadgeRepository badgeRepository) {
         this.userDao = userDao;
         this.userProvider = userProvider;
         this.jwtService = jwtService;
         this.awsS3Service = awsS3Service;
         this.encryptProperties = encryptProperties;
+        this.userBadgeRepository = userBadgeRepository;
+        this.badgeRepository = badgeRepository;
     }
 
 
@@ -260,5 +269,17 @@ public class UserService {
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
+    }
+
+    public List<UserBadge> findDistinctByUserIdx(Integer userIdx) {
+        List<UserBadge> badges = new ArrayList<>();
+        userBadgeRepository.findDistinctByUserIdx(userIdx).forEach(e -> badges.add(e));
+        return badges;
+    }
+
+    public List<Badge> findDistinctByBadgeIdx(Integer badgeIdx) {
+        List<Badge> badges = new ArrayList<>();
+        badgeRepository.findDistinctByBadgeIdx(badgeIdx).forEach(e -> badges.add(e));
+        return badges;
     }
 }

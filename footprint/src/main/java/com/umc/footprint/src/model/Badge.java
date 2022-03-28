@@ -26,13 +26,14 @@ public class Badge {
     private String badgeUrl;
 
     @Column(name = "badgeDate", length = 30, nullable = false)
-    private LocalDateTime badgeDate;
+    private String badgeDate;
 
     @Builder
-    public Badge(int badgeIdx, String badgeName, String badgeUrl, LocalDateTime badgeDate) {
+    public Badge(int badgeIdx, String badgeName, String badgeUrl, String badgeDate) {
         this.badgeIdx = badgeIdx;
         this.badgeName = badgeName;
         this.badgeUrl = badgeUrl;
         this.badgeDate = badgeDate;
     }
+
 }
