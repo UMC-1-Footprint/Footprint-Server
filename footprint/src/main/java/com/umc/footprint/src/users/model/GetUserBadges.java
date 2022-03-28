@@ -1,15 +1,20 @@
 package com.umc.footprint.src.users.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@NoArgsConstructor
+
 public class GetUserBadges {
     private BadgeInfo repBadgeInfo;
     private List<BadgeOrder> badgeList;
+
+
+    @Builder
+    public GetUserBadges(BadgeInfo repBadgeInfo, List<BadgeOrder> badgeList) {
+        this.repBadgeInfo = repBadgeInfo;
+        this.badgeList = badgeList;
+    }
 }
