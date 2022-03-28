@@ -1189,54 +1189,10 @@ public class UserDao {
 
     }
 
-    // 로그인 정보 입력
-    public void postUserLogin(PostLoginReq postLoginReq) {
-        String postLoginQuery = "insert into User(userId, username, email, providerType, status) values (?,?,?,?,?)";
-        String status = "ONGOING";
-        Object[] postLoginParams = new Object[]{postLoginReq.getUserId(), postLoginReq.getUsername(), postLoginReq.getEmail(), postLoginReq.getProviderType(), status};
-        this.jdbcTemplate.update(postLoginQuery,  postLoginParams);
-    }
-
-    public PostLoginRes getUserIdAndStatus(String email) {
-        String checkEmailQuery = "select userId, status from User where email = ?";
-        return this.jdbcTemplate.queryForObject(checkEmailQuery,
-                (rs, rowNum) -> PostLoginRes.builder()
-                        .jwtId(rs.getString("userId"))
-                        .status(rs.getString("status"))
-                        .build()
-                , email);
-    }
-
-    public int checkEmail(String email) {
-        String checkEmailQuery = "select exists(select email from User where email = ?)";
-        return this.jdbcTemplate.queryForObject(checkEmailQuery,
-                int.class,
-                email);
-    }
-
     public int getUserIdx(String userId) {
         log.debug("userId: {}", userId);
         String getUserIdxQuery = "select userIdx from User where userId = ?";
         return this.jdbcTemplate.queryForObject(getUserIdxQuery, int.class, userId);
-    }
-
-    public AutoLoginUser getUserLogAt(int userIdx) {
-        String getUserLogAtQuery = "select status,logAt from User where userIdx = ?";
-
-        return this.jdbcTemplate.queryForObject(getUserLogAtQuery,
-                (rs, rowNum) -> AutoLoginUser.builder()
-                        .status(rs.getString("status"))
-                        .logAt(rs.getTimestamp("logAt").toLocalDateTime())
-                        .build()
-                , userIdx);
-
-    }
-
-    public void modifyUserLogAt(LocalDateTime now, int userIdx) {
-        String modifyUserLogAtQuery = "update User set logAt = ? where userIdx = ?";
-        Object[] modifyUserLogAtParams = new Object[]{now, userIdx};
-
-        this.jdbcTemplate.update(modifyUserLogAtQuery,modifyUserLogAtParams);
     }
 
     //Badge 테이블에 존재하는 뱃지인지 검사하는 메소드

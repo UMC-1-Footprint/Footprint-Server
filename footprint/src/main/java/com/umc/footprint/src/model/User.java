@@ -71,4 +71,16 @@ public class User {
         this.status = status;
         this.logAt = logAt;
     }
+
+    // default 값으로 초기화
+    @PrePersist
+    public void prePersist() {
+        this.nickname = this.nickname == null ? "nickname" : this.nickname;
+        this.status = this.status == null ? "ONGOING" : this.status;
+        this.logAt = this.logAt == null ? LocalDateTime.of(1900,01,01,01,01,01) : this.logAt;
+    }
+
+    public void updateLogAtNow(LocalDateTime now) {
+        this.logAt = now;
+    }
 }

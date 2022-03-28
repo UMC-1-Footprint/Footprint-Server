@@ -71,11 +71,8 @@ public class UserController {
             // 사용자 등록 또는 로그인
             PostLoginRes postLoginRes = userService.postUserLogin(postLoginReq);
 
-            // 유저 id로 인덱스 값 추출
-            int userIdx = userProvider.getUserIdx(postLoginReq.getUserId());
-
             // 사용자의 로그인한 날짜 이전 기록과 비교 후 달 바뀌면 true return
-            postLoginRes.setCheckMonthChanged(userService.modifyUserLogAt(userIdx).isCheckMonthChanged());
+            postLoginRes.setCheckMonthChanged(userService.modifyUserLogAt(postLoginReq.getUserId()).isCheckMonthChanged());
 
             return new BaseResponse<>(postLoginRes);
         } catch (BaseException exception) {
@@ -96,11 +93,8 @@ public class UserController {
             jwtService.getJwt();
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            PostLoginRes postLoginRes = userService.modifyUserLogAt(userIdx);
-            postLoginRes.setJwtId(jwtService.createJwt(userId));
+            PostLoginRes postLoginRes = userService.modifyUserLogAt(userId);
 
             return new BaseResponse<>(postLoginRes);
         } catch (BaseException exception) {

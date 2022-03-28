@@ -10,6 +10,8 @@ import com.umc.footprint.src.model.Badge;
 import com.umc.footprint.src.model.UserBadge;
 import com.umc.footprint.src.repository.BadgeRepository;
 import com.umc.footprint.src.repository.UserBadgeRepository;
+import com.umc.footprint.src.model.User;
+import com.umc.footprint.src.repository.UserRepository;
 import com.umc.footprint.src.users.model.*;
 
 import com.umc.footprint.utils.AES128;
@@ -32,7 +34,7 @@ import java.util.List;
 @Service
 public class UserService {
     private final UserDao userDao;
-    private final UserProvider userProvider;
+    private final UserRepository userRepository;
     private final JwtService jwtService;
     private final AwsS3Service awsS3Service;
     private final EncryptProperties encryptProperties;
@@ -43,7 +45,7 @@ public class UserService {
     public UserService(UserDao userDao, UserProvider userProvider, JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties
             , UserBadgeRepository userBadgeRepository, BadgeRepository badgeRepository) {
         this.userDao = userDao;
-        this.userProvider = userProvider;
+        this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.awsS3Service = awsS3Service;
         this.encryptProperties = encryptProperties;
@@ -154,12 +156,45 @@ public class UserService {
         }
     }
 
+    public PostLoginRes checkEmail(String email) throws BaseException {
+        try {
+            log.debug("email: {}", email);
+            // checkExistFlag == true -> 유저 이미 존재
+            // checkExistFlag == false -> 유저 정보 등록 필요
+            boolean checkExistFlag = userRepository.existsByEmail(email);
+
+            log.debug("checkExistFlag: {}", checkExistFlag);
+
+            if (checkExistFlag) {
+                // email로 userId랑 상태 추출
+                User user = userRepository.findByEmail(email);
+                PostLoginRes postLoginRes = PostLoginRes.builder()
+                        .jwtId(user.getUserId())
+                        .status(user.getStatus())
+                        .build();
+                // userId 암호화
+                String jwtId = jwtService.createJwt(postLoginRes.getJwtId());
+                // response에 저장
+                postLoginRes.setJwtId(jwtId);
+                return postLoginRes;
+            } else {
+                return PostLoginRes.builder()
+                        .jwtId("")
+                        .status("NONE")
+                        .checkMonthChanged(false)
+                        .build();
+            }
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public PostLoginRes postUserLogin(PostLoginReq postLoginReq) throws BaseException {
         { // email 중복 확인 있으면 status에 Done 넣고 return
             try {
                 String encryptEmail = new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getEmail());
-                PostLoginRes result = userProvider.checkEmail(encryptEmail);
+                PostLoginRes result = checkEmail(encryptEmail);
                 log.debug("유저의 status: {}", result.getStatus());
                 // status: NONE -> 회원가입(유저 정보 db에 등록 필요)
                 // status: ACTIVE -> 로그인
@@ -170,7 +205,7 @@ public class UserService {
                             String jwt = jwtService.createJwt(postLoginReq.getUserId());
                             // 유저 정보 db에 등록
                             postLoginReq.setEncryptedInfos(new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getUsername()), encryptEmail);
-                            userDao.postUserLogin(postLoginReq);
+                            userRepository.save(postLoginReq.toUserEntity());
 
                             return PostLoginRes.builder()
                                     .jwtId(jwt)
@@ -188,35 +223,30 @@ public class UserService {
         }
     }
 
-    public PostLoginRes modifyUserLogAt(int userIdx) throws BaseException {
+    public PostLoginRes modifyUserLogAt(String userId) throws BaseException {
         try {
-            boolean result = true;
-
             // 이전에 로그인 했던 시간
-            AutoLoginUser autoLoginUser = userDao.getUserLogAt(userIdx);
+            User user = userRepository.findByUserId(userId);
 
-            log.debug("AutoLoginUser: {}", autoLoginUser.toString());
+            LocalDateTime beforeLogAt = user.getLogAt();
 
-            PostLoginRes postLoginRes = PostLoginRes.builder()
-                    .status(autoLoginUser.getStatus())
-                    .build();
-            LocalDateTime beforeLogAt = autoLoginUser.getLogAt();
-            ZonedDateTime seoulDateTime = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
-            LocalDateTime now = seoulDateTime.toLocalDateTime();
+            boolean checkMonthChangedFlag = true;
+
             // 달이 같은 경우
             if (beforeLogAt.getMonth() == LocalDateTime.now().getMonth()) {
                 // 달이 바뀌지 않았다고 response에 저장
-                postLoginRes.setCheckMonthChanged(false);
-            } else {
-                // 달이 바뀌었다고 response에 저장
-                postLoginRes.setCheckMonthChanged(true);
+                checkMonthChangedFlag = false;
             }
 
             // 현재 로그인하는 시간 logAt에 저장
-            log.debug("현재 시간: {}", now);
-            userDao.modifyUserLogAt(now, userIdx);
+            user.updateLogAtNow(LocalDateTime.now());
+            userRepository.save(user);
 
-            return postLoginRes;
+            return PostLoginRes.builder()
+                    .jwtId(jwtService.createJwt(user.getUserId()))
+                    .status(user.getStatus())
+                    .checkMonthChanged(checkMonthChangedFlag)
+                    .build();
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
