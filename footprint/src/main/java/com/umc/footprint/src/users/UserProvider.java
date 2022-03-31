@@ -404,35 +404,6 @@ public class UserProvider {
         }
     }
 
-    // email을 통해 유저 중복 검사
-    public PostLoginRes checkEmail(String email) throws BaseException {
-        try {
-            log.debug("email: {}", email);
-            // flag == 1 -> 유저 이미 존재
-            // flag == 0 -> 유저 정보 등록 필요
-            int flag = userDao.checkEmail(email);
-            log.debug("flag: {}", flag);
-
-            if (flag == 1) {
-                // email로 userId랑 상태 추출
-                PostLoginRes postLoginRes = userDao.getUserIdAndStatus(email);
-                // userId 암호화
-                String jwtId = jwtService.createJwt(postLoginRes.getJwtId());
-                // response에 저장
-                postLoginRes.setJwtId(jwtId);
-                return postLoginRes;
-            } else {
-                return PostLoginRes.builder()
-                        .jwtId("")
-                        .status("NONE")
-                        .checkMonthChanged(false)
-                        .build();
-            }
-        } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
-
     // userId로 userIdx 추출
     public int getUserIdx(String userId) throws BaseException {
         try {

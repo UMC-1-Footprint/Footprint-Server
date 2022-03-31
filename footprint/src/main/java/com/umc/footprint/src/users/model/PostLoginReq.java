@@ -1,5 +1,6 @@
 package com.umc.footprint.src.users.model;
 
+import com.umc.footprint.src.model.User;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 
@@ -30,5 +31,14 @@ public class PostLoginReq {
     public void setEncryptedInfos(String encryptedUsername, String encryptedEmail) {
         this.username = encryptedUsername;
         this.email = encryptedEmail;
+    }
+
+    public User toUserEntity() {
+        return User.builder()
+                .userId(userId)
+                .username(username)
+                .email(email)
+                .providerType(providerType)
+                .build();
     }
 }
