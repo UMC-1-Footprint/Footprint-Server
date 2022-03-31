@@ -111,7 +111,7 @@ public class WalkController {
             int wholeWalkIdx = walkProvider.getWalkWholeIdx(walkIdx, userIdx);
             log.debug("wholeWalkIdx: {}", wholeWalkIdx);
 
-            GetWalkInfo getWalkInfo = walkProvider.getWalkInfo(wholeWalkIdx);
+            GetWalkInfo getWalkInfo = walkService.getWalkInfo(wholeWalkIdx);
             return new BaseResponse<>(getWalkInfo);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));

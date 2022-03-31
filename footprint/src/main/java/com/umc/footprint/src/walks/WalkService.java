@@ -301,4 +301,18 @@ public class WalkService {
         log.debug("example: {}" ,example.get().toString());
 
     }
+
+    public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
+        try {
+            int check = walkDao.checkWalkVal(walkIdx);
+            if(check!=1) { //산책 INACTIVE
+                throw new BaseException(INVALID_WALKIDX);
+            }
+            GetWalkInfo getWalkInfo = walkDao.getWalkInfo(walkIdx);
+            getWalkInfo.changePathImageUrl(getWalkInfo,new AES128(encryptProperties.getKey()).decrypt(getWalkInfo.getPathImageUrl()));
+            return getWalkInfo;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }

@@ -1,23 +1,35 @@
 package com.umc.footprint.src.walks.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.text.SimpleDateFormat;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@NoArgsConstructor
 public class GetWalkInfo {
     private int walkIdx;
-    //private String date; //날짜
-    //private String startAt; //산책 시작 시간
-    //private String endAt; //산책 끝 시간
-    //private String timeString; //산책 시간은 string으로!
     GetWalkTime getWalkTime;
     private int calorie;
     private double distance;
     private int footCount;
     private String pathImageUrl;
+
+    @Builder
+    public GetWalkInfo(int walkIdx, GetWalkTime getWalkTime, int calorie, double distance, int footCount, String pathImageUrl) {
+        this.walkIdx = walkIdx;
+        this.getWalkTime = getWalkTime;
+        this.calorie = calorie;
+        this.distance = distance;
+        this.footCount = footCount;
+        this.pathImageUrl = pathImageUrl;
+    }
+
+    public void changePathImageUrl(GetWalkInfo getWalkInfo, String pathImageUrl) {
+        this.walkIdx = getWalkInfo.getWalkIdx();
+        this.getWalkTime = getWalkInfo.getGetWalkTime();
+        this.calorie = getWalkInfo.getCalorie();
+        this.distance = getWalkInfo.getDistance();
+        this.footCount = getWalkInfo.getFootCount();
+        this.pathImageUrl = pathImageUrl;
+    }
 }

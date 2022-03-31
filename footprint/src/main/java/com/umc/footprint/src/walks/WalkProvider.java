@@ -29,21 +29,6 @@ public class WalkProvider {
         this.encryptProperties = encryptProperties;
     }
 
-
-    public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
-        try {
-            int check = walkDao.checkWalkVal(walkIdx);
-            if(check!=1) { //산책 INACTIVE
-                throw new BaseException(INVALID_WALKIDX);
-            }
-            GetWalkInfo getWalkInfo = walkDao.getWalkInfo(walkIdx);
-            getWalkInfo.setPathImageUrl(new AES128(encryptProperties.getKey()).decrypt(getWalkInfo.getPathImageUrl()));
-            return getWalkInfo;
-        } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
-  }
-
     //
     public Double getGoalRate(SaveWalk walk) throws BaseException {
         try {
