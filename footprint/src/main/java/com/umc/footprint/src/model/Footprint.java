@@ -22,7 +22,7 @@ public class Footprint {
     @Column(name = "coordinate", length = 100, nullable = false)
     private String coordinate;
 
-    @Column(name = "record", length = 500)
+    @Column(name = "record", columnDefinition = "LONGTEXT")
     private String record;
 
     @Column(name = "recordAt", nullable = false)
