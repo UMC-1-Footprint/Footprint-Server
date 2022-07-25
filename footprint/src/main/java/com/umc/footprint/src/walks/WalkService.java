@@ -437,17 +437,13 @@ public class WalkService {
             Walk walkByNumber = getWalkByNumber(walkIdx, userIdx);
 
             Duration diff = Duration.between(walkByNumber.getStartAt(), walkByNumber.getEndAt());
-            String diffStr = "";
+            String minutes = String.format("%02d", diff.toMinutesPart());
+            String seconds = String.format("%02d", diff.toSecondsPart());
+            String diffStr = minutes + ":" + seconds;
             if (diff.getSeconds() >= 3600) {
                 String hours = String.format("%02d", diff.toHoursPart());
-                String minutes = String.format("%02d", diff.toMinutesPart());
 
-                diffStr = hours + ":" + minutes;
-            } else {
-                String minutes = String.format("%02d", diff.toMinutesPart());
-                String seconds = String.format("%02d", diff.toSecondsPart());
-
-                diffStr = minutes + ":" + seconds;
+                diffStr = hours + ":" + diffStr;
             }
 
             GetWalkTime getWalkTime = GetWalkTime.builder()
