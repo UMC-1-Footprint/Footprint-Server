@@ -25,6 +25,7 @@ public class WalkProvider {
         this.encryptProperties = encryptProperties;
     }
 
+
     public List<Integer> getAcquiredBadgeIdxList(int userIdx) throws BaseException {
         try {
             // 조건에 부합하는 뱃지 조회
