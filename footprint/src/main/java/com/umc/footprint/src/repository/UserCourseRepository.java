@@ -7,5 +7,8 @@ import java.util.List;
 
 public interface UserCourseRepository extends JpaRepository<UserCourse, Integer> {
 
-    List<UserCourse> findByUserIdx(int useridx);
+    List<UserCourse> findByUserIdx(int userIdx);
+
+    List<UserCourse> findByCourseIdx(int courseIdx);
+
 }

@@ -37,7 +37,7 @@ public class Course extends BaseEntity {
     private String address;
 
     @Column(name = "length")
-    private Float length;
+    private Double length;
 
     @Column(name = "courseTime")
     private Integer courseTime;
@@ -61,7 +61,7 @@ public class Course extends BaseEntity {
     private String status;
 
     @Builder
-    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Float length, Integer courseTime, Integer walkIdx, Integer userIdx, String description, Integer markNum, Integer likeNum, String status) {
+    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Double length, Integer courseTime, Integer walkIdx, Integer userIdx, String description, Integer markNum, Integer likeNum, String status) {
         this.courseIdx = courseIdx;
         this.courseName = courseName;
         this.courseImg = courseImg;

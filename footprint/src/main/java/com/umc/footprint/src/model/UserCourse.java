@@ -26,5 +26,5 @@ public class UserCourse {
     private Integer walkIdx;
 
     @Column(name = "courseCount")
-    private Boolean courseCount;
+    private Integer courseCount;
 }

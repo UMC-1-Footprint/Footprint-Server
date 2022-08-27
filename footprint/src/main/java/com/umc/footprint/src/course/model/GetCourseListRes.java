@@ -12,26 +12,26 @@ public class GetCourseListRes {
     private double startLat;
     private double startLong;
     private String courseName;
-    private Float courseDist;
+    private Double courseDist;
     private int courseTime;
-    private int courseMark;
+    private int courseCount;
     private int courseLike;
     private List<String> courseTags;
     private String courseImg;
-    private boolean userCourseLike;
+    private boolean userCourseMark;
 
     @Builder
-    public GetCourseListRes(int courseIdx, double startLat, double startLong, String courseName, Float courseDist, int courseTime, int courseMark, int courseLike, List<String> courseTags, String courseImg, boolean userCourseLike) {
+    public GetCourseListRes(int courseIdx, double startLat, double startLong, String courseName, Double courseDist, int courseTime, int courseCount, int courseLike, List<String> courseTags, String courseImg, boolean userCourseMark) {
         this.courseIdx = courseIdx;
         this.startLat = startLat;
         this.startLong = startLong;
         this.courseName = courseName;
         this.courseDist = courseDist;
         this.courseTime = courseTime;
-        this.courseMark = courseMark;
+        this.courseCount = courseCount;
         this.courseLike = courseLike;
         this.courseTags = courseTags;
         this.courseImg = courseImg;
-        this.userCourseLike = userCourseLike;
+        this.userCourseMark = userCourseMark;
     }
 }
