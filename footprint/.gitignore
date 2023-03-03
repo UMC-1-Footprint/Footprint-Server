@@ -48,4 +48,3 @@ appspec.yml
 /.github/**
 /script/**repository\
 
-**/test/**/src
