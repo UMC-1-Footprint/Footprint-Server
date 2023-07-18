@@ -101,9 +101,10 @@ public enum BaseResponseStatus {
     MODIFY_OBJECT_FAIL(false, 4004, "Request 객체 변환에 실패하였습니다."),
     DECRYPT_FAIL(false, 4005, "복호화를 실패하였습다."),
     S3UPLOAD_ERROR(false, 4080, "파일 업로드에 실패하였습니다."),
-    MODIFY_USER_GOAL_FAIL(false,4160,"사용자 목표 변경에 실패하였습니다."),
-    MODIFY_USERINFO_FAIL(false,4161,"유저 정보 변경에 실패하였습니다."),
-    DELETE_FOOTPRINT_FAIL(false, 4260, "발자국 삭제에 실패하였습니다."),
+    MODIFY_USER_GOAL_FAIL(false, 4160, "사용자 목표 변경에 실패하였습니다."),
+    MODIFY_USERINFO_FAIL(false, 4161, "유저 정보 변경에 실패하였습니다."),
+    DELETE_FOOTPRINT_FAIL(false, 4262, "발자국 삭제에 실패하였습니다."),
+    INTERNAL_SERVER_ERROR(false, 4263, "서버 내부 에러"),
     MODIFY_FOOTPRINT_FAIL(false, 4261, "발자국 수정에 실패하였습니다.");
 
     private final boolean isSuccess;

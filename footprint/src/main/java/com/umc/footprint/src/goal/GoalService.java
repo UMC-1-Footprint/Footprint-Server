@@ -1,29 +1,8 @@
 package com.umc.footprint.src.goal;
 
-import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.BaseResponseStatus;
-import com.umc.footprint.src.goal.model.entity.Goal;
-import com.umc.footprint.src.goal.model.entity.GoalDay;
-import com.umc.footprint.src.goal.model.entity.GoalDayNext;
-import com.umc.footprint.src.goal.model.entity.GoalNext;
-import com.umc.footprint.src.goal.repository.GoalDayNextRepository;
-import com.umc.footprint.src.goal.repository.GoalDayRepository;
-import com.umc.footprint.src.goal.repository.GoalNextRepository;
-import com.umc.footprint.src.goal.repository.GoalRepository;
-import com.umc.footprint.src.goal.model.vo.GetGoalDays;
-import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
-import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
-import com.umc.footprint.src.goal.model.vo.UserGoalTime;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import static com.umc.footprint.config.BaseResponseStatus.*;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -32,7 +11,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.umc.footprint.config.BaseResponseStatus.NOT_EXIST_USER_IN_GOAL;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.umc.footprint.config.BaseException;
+import com.umc.footprint.config.BaseResponseStatus;
+import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
+import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
+import com.umc.footprint.src.goal.model.entity.Goal;
+import com.umc.footprint.src.goal.model.entity.GoalDay;
+import com.umc.footprint.src.goal.model.entity.GoalDayNext;
+import com.umc.footprint.src.goal.model.entity.GoalNext;
+import com.umc.footprint.src.goal.model.vo.GetGoalDays;
+import com.umc.footprint.src.goal.model.vo.UserGoalTime;
+import com.umc.footprint.src.goal.repository.GoalDayNextRepository;
+import com.umc.footprint.src.goal.repository.GoalDayRepository;
+import com.umc.footprint.src.goal.repository.GoalNextRepository;
+import com.umc.footprint.src.goal.repository.GoalRepository;
+import com.umc.footprint.src.walks.model.vo.WalkInfo;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -117,7 +121,7 @@ public class GoalService {
             dayIdxList.add(7);
 
         /** 3. get UserGoalTime */
-        List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
+        List<Goal> userGoalList = goalRepository.findAllByUserIdx(userIdx);
 
         Goal userGoal = Goal.builder().build();
         for(Goal goal : userGoalList ){
@@ -306,11 +310,26 @@ public class GoalService {
         return goalDayString;
     }
 
-
     @Transactional
     @Scheduled(cron = "0 0 0 1 * ?")
-    public void changeMonthGoal(){
+    public void changeMonthGoal() {
         updateGoal();
         updateGoalDay();
+    }
+
+    @Transactional(readOnly = true)
+    public Double getGoalRate(WalkInfo walk, int userIdx) {
+        Long walkTime = Duration.between(walk.getStartAt(), walk.getEndAt()).getSeconds();
+        log.debug("walkTime: {}", walkTime);
+
+        List<Goal> userGoals = goalRepository.findAllByUserIdx(userIdx);
+
+        log.debug("userIdx: {}", userIdx);
+        Goal currentMonthGoal = userGoals.stream()
+            .filter(goal -> goal.isSameMonthAndYear(goal.getCreateAt(), LocalDateTime.now()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("현재 달에 등록된 목표가 없습니다."));
+
+        return currentMonthGoal.computeGoalRate(walkTime);
     }
 }

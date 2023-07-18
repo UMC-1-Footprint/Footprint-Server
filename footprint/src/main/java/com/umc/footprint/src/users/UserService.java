@@ -1,7 +1,30 @@
 package com.umc.footprint.src.users;
 
+import static com.umc.footprint.config.BaseResponseStatus.*;
+
+import java.sql.Timestamp;
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.badge.model.Badge;
 import com.umc.footprint.src.badge.model.BadgeRepository;
@@ -10,49 +33,45 @@ import com.umc.footprint.src.badge.model.UserBadgeRepository;
 import com.umc.footprint.src.common.model.entity.Photo;
 import com.umc.footprint.src.common.model.entity.Tag;
 import com.umc.footprint.src.common.model.vo.WalkHashtag;
-import com.umc.footprint.src.common.repository.HashtagRepository;
 import com.umc.footprint.src.common.repository.PhotoRepository;
 import com.umc.footprint.src.common.repository.TagRepository;
 import com.umc.footprint.src.footprints.model.dto.GetFootprintCount;
 import com.umc.footprint.src.footprints.model.entity.Footprint;
+import com.umc.footprint.src.footprints.model.vo.GetFootprintCountInterface;
 import com.umc.footprint.src.footprints.repository.FootprintRepository;
 import com.umc.footprint.src.goal.GoalService;
 import com.umc.footprint.src.goal.model.entity.Goal;
 import com.umc.footprint.src.goal.model.entity.GoalDay;
 import com.umc.footprint.src.goal.model.entity.GoalDayNext;
 import com.umc.footprint.src.goal.model.entity.GoalNext;
+import com.umc.footprint.src.goal.model.vo.GetMonthTotalInterface;
 import com.umc.footprint.src.goal.repository.GoalDayNextRepository;
 import com.umc.footprint.src.goal.repository.GoalDayRepository;
 import com.umc.footprint.src.goal.repository.GoalNextRepository;
 import com.umc.footprint.src.goal.repository.GoalRepository;
-import com.umc.footprint.src.users.model.dto.*;
+import com.umc.footprint.src.users.model.dto.GetDayRateRes;
+import com.umc.footprint.src.users.model.dto.GetMonthInfoRes;
+import com.umc.footprint.src.users.model.dto.GetTagRes;
+import com.umc.footprint.src.users.model.dto.GetUserDateRes;
+import com.umc.footprint.src.users.model.dto.GetUserRes;
+import com.umc.footprint.src.users.model.dto.GetUserTodayRes;
+import com.umc.footprint.src.users.model.dto.PatchUserInfoReq;
+import com.umc.footprint.src.users.model.dto.PostLoginReq;
+import com.umc.footprint.src.users.model.dto.PostLoginRes;
 import com.umc.footprint.src.users.model.entity.User;
 import com.umc.footprint.src.users.model.vo.GetDayRateResInterface;
 import com.umc.footprint.src.users.model.vo.GetMonthTotal;
 import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
 import com.umc.footprint.src.users.model.vo.UserInfoStat;
-import com.umc.footprint.src.footprints.model.vo.GetFootprintCountInterface;
-import com.umc.footprint.src.goal.model.vo.GetMonthTotalInterface;
 import com.umc.footprint.src.users.repository.UserRepository;
 import com.umc.footprint.src.walks.model.entity.Walk;
 import com.umc.footprint.src.walks.model.vo.UserDateWalk;
 import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.sql.Timestamp;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.umc.footprint.config.BaseResponseStatus.*;
 
 @Slf4j
 @Service
@@ -65,7 +84,6 @@ public class UserService {
     private final JwtService jwtService;
     private final AwsS3Service awsS3Service;
     private final GoalService goalService;
-    private final EncryptProperties encryptProperties;
     private final GoalRepository goalRepository;
     private final GoalNextRepository goalNextRepository;
     private final GoalDayRepository goalDayRepository;
@@ -131,7 +149,7 @@ public class UserService {
                                                         .walkIdx(allByUserIdx.indexOf(walkHashtag.getWalkIdx()) + 1)
                                                         .startTime(walkHashtag.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                                                         .endTime(walkHashtag.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
-                                                        .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walkHashtag.getPathImageUrl()))
+                                                        .pathImageUrl(AES128.decrypt(walkHashtag.getPathImageUrl()))
                                                         .build()
                                         )
                                         .hashtag(hashtagList)
@@ -248,7 +266,7 @@ public class UserService {
     public PostLoginRes postUserLogin(PostLoginReq postLoginReq) throws BaseException {
         // email 중복 확인 있으면 status에 Done 넣고 return
         try {
-            String encryptEmail = new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getEmail());
+            String encryptEmail = AES128.encrypt(postLoginReq.getEmail());
             PostLoginRes result = checkEmail(encryptEmail);
             log.debug("유저의 status: {}", result.getStatus());
             // status: NONE -> 회원가입(유저 정보 db에 등록 필요)
@@ -259,7 +277,7 @@ public class UserService {
                     // 암호화
                     String jwt = jwtService.createJwt(postLoginReq.getUserId());
                     // 유저 정보 db에 등록
-                    postLoginReq.setEncryptedInfos(new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getUsername()), encryptEmail);
+                    postLoginReq.setEncryptedInfos(AES128.encrypt(postLoginReq.getUsername()), encryptEmail);
                     userRepository.save(postLoginReq.toUserEntity());
                     userBadgeRepository.save(
                             UserBadge.builder()
@@ -327,7 +345,7 @@ public class UserService {
             goalDayNextRepository.deleteById(goalDayNext.get().getPlanIdx());
 
             // Goal 테이블
-            List<Goal> goalList = goalRepository.findByUserIdx(userIdx);
+            List<Goal> goalList = goalRepository.findAllByUserIdx(userIdx);
             for (Goal goal : goalList) {
                 goalRepository.deleteById(goal.getPlanIdx());
             }
@@ -353,7 +371,7 @@ public class UserService {
             // Photo 테이블 -> s3에서 이미지 url 먼저 삭제 후 테이블 삭제 필요
             List<Photo> photoList = photoRepository.findAllByUserIdx(userIdx);
             for (Photo photo : photoList) {
-                String decryptedImageUrl = new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl());
+                String decryptedImageUrl = AES128.decrypt(photo.getImageUrl());
                 String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/") + 1); // 파일 이름만 자르기
                 awsS3Service.deleteFile(fileName);
 
@@ -372,7 +390,7 @@ public class UserService {
                 }
 
                 // Walk 테이블 - 동선 이미지 S3 에서도 삭제
-                String decryptedImageUrl = new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl());
+                String decryptedImageUrl = AES128.decrypt(walk.getPathImageUrl());
                 String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/") + 1); // 파일 이름만 자르기
                 awsS3Service.deleteFile(fileName);
 
@@ -473,8 +491,7 @@ public class UserService {
 //        int walkGoalTime = 0;
 //        if(onDay == true){
 
-
-        List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
+        List<Goal> userGoalList = goalRepository.findAllByUserIdx(userIdx);
         Goal userGoal = Goal.builder().build();
         for (Goal goal : userGoalList) {
             LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
@@ -519,7 +536,7 @@ public class UserService {
                         .walkIdx(count)
                         .startTime(userWalk.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                         .endTime(userWalk.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
-                        .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(userWalk.getPathImageUrl()))
+                        .pathImageUrl(AES128.decrypt(userWalk.getPathImageUrl()))
                         .build();
 
                 List<Footprint> footprintList = userWalk.getFootprintList();
@@ -716,7 +733,7 @@ public class UserService {
     public int calcMonthGoalRate(int userIdx, int beforeMonth) {
 
         // 0. 해당 달에 사용자 목표 기록이 있는지 확인
-        List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
+        List<Goal> userGoalList = goalRepository.findAllByUserIdx(userIdx);
         boolean isGoalExist = false;
         for (Goal goal : userGoalList) {
             LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
@@ -914,8 +931,8 @@ public class UserService {
             return GetUserRes.builder()
                     .userIdx(user.get().getUserIdx())
                     .nickname(user.get().getNickname())
-                    .username(new AES128(encryptProperties.getKey()).decrypt(user.get().getUsername()))
-                    .email(new AES128(encryptProperties.getKey()).decrypt(user.get().getEmail()))
+                    .username(AES128.decrypt(user.get().getUsername()))
+                    .email(AES128.decrypt(user.get().getEmail()))
                     .status(user.get().getStatus())
                     .badgeIdx(user.get().getBadgeIdx())
                     .badgeUrl(badgeUrl)

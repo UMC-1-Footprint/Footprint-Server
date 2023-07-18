@@ -1,12 +1,23 @@
 package com.umc.footprint.src.common.model.entity;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
+
 import com.umc.footprint.src.footprints.model.entity.Footprint;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
 
 @Getter
 @Entity
@@ -37,10 +48,13 @@ public class Tag {
     private Footprint footprint;
 
     @Builder
-    public Tag(Integer tagIdx, Integer userIdx, String status) {
+    public Tag(Integer tagIdx, Integer userIdx, String status, Integer walkIdx, Hashtag hashtag, Footprint footprint) {
         this.tagIdx = tagIdx;
         this.userIdx = userIdx;
         this.status = status;
+        this.walkIdx = walkIdx;
+        this.hashtag = hashtag;
+        this.footprint = footprint;
     }
 
     @PrePersist
@@ -55,7 +69,7 @@ public class Tag {
     public void setFootprint(Footprint footprint) {
         this.footprint = footprint;
         if (!footprint.getTagList().contains(this)) {
-            footprint.addTagList(this);
+            footprint.addTag(this);
         }
     }
 

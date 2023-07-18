@@ -1,14 +1,36 @@
 package com.umc.footprint.src.course;
 
+import static com.umc.footprint.config.BaseResponseStatus.*;
+
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.WKTReader;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.common.model.entity.Hashtag;
 import com.umc.footprint.src.common.model.entity.Photo;
 import com.umc.footprint.src.common.model.entity.Tag;
 import com.umc.footprint.src.common.model.vo.HashtagInfo;
 import com.umc.footprint.src.common.repository.PhotoRepository;
 import com.umc.footprint.src.common.repository.TagRepository;
-import com.umc.footprint.src.course.model.dto.*;
+import com.umc.footprint.src.course.model.dto.GetCourseDetailsRes;
+import com.umc.footprint.src.course.model.dto.GetCourseInfoRes;
+import com.umc.footprint.src.course.model.dto.GetCourseListReq;
+import com.umc.footprint.src.course.model.dto.GetCourseListRes;
+import com.umc.footprint.src.course.model.dto.GetWalkDetailsRes;
+import com.umc.footprint.src.course.model.dto.PatchCourseDetailsReq;
+import com.umc.footprint.src.course.model.dto.PostCourseDetailsReq;
 import com.umc.footprint.src.course.model.dto.projection.CourseHashTagProjection;
 import com.umc.footprint.src.course.model.dto.projection.HashTagProjection;
 import com.umc.footprint.src.course.model.entity.Course;
@@ -30,25 +52,10 @@ import com.umc.footprint.src.walks.model.entity.Walk;
 import com.umc.footprint.src.walks.model.vo.UserDateWalk;
 import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.io.WKTReader;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static com.umc.footprint.config.BaseResponseStatus.*;
 
 @Slf4j
 @Service
@@ -63,7 +70,6 @@ public class CourseService {
     private final WalkRepository walkRepository;
     private final TagRepository tagRepository;
     private final PhotoRepository photoRepository;
-    private final EncryptProperties encryptProperties;
     private final UserService userService;
 
     @Value("${image.course}")
@@ -204,10 +210,10 @@ public class CourseService {
             }
 
             UserDateWalk userDateWalk = UserDateWalk.builder()
-                    .walkIdx(walkIndex)
-                    .startTime(userWalk.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
-                    .endTime(userWalk.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
-                    .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(userWalk.getPathImageUrl()))
+                .walkIdx(walkIndex)
+                .startTime(userWalk.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                .endTime(userWalk.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                .pathImageUrl(AES128.decrypt(userWalk.getPathImageUrl()))
                     .build();
 
             List<Footprint> footprintList = userWalk.getFootprintList();
@@ -259,7 +265,7 @@ public class CourseService {
         } else if(courseImg.startsWith("https://")) {
             return courseImg;
         }
-        courseImg = new AES128(encryptProperties.getKey()).decrypt(courseImg);
+        courseImg = AES128.decrypt(courseImg);
         if(courseImg.equals("")) {
             courseImg = defaultCourseImage;
         }
@@ -338,7 +344,7 @@ public class CourseService {
             decryptedImg = "";
         } else {
             try {
-                decryptedImg = new AES128(encryptProperties.getKey()).decrypt(courseDetails.getCourseImg());
+                decryptedImg = AES128.decrypt(courseDetails.getCourseImg());
             } catch (Exception exception) {
                 throw new BaseException(DECRYPT_FAIL);
             }
@@ -366,7 +372,8 @@ public class CourseService {
 
         // 좌표 암호화
         try {
-            encryptedCoordinates = new AES128(encryptProperties.getKey()).encrypt(walkService.convert2DListToString(postCourseDetailsReq.getCoordinates()));
+            encryptedCoordinates = AES128.encrypt(
+                walkService.convert2DListToString(postCourseDetailsReq.getCoordinates()));
         } catch (Exception exception) {
             log.info("좌표 암호화 실패");
             throw new BaseException(ENCRYPT_FAIL);
@@ -377,7 +384,7 @@ public class CourseService {
             courseImg = "";
         } else {
             try {
-                courseImg = new AES128(encryptProperties.getKey()).encrypt(postCourseDetailsReq.getCourseImg());
+                courseImg = AES128.encrypt(postCourseDetailsReq.getCourseImg());
             } catch (Exception exception) {
                 log.info("요청한 코스 이미지 암호화 실패");
                 throw new BaseException(ENCRYPT_FAIL);
@@ -540,7 +547,7 @@ public class CourseService {
 
         String encryptCourseImg;
         try {
-            encryptCourseImg = new AES128(encryptProperties.getKey()).encrypt(patchCourseDetailsReq.getCourseImg());
+            encryptCourseImg = AES128.encrypt(patchCourseDetailsReq.getCourseImg());
         } catch (Exception exception) {
             throw new BaseException(ENCRYPT_FAIL);
         }
@@ -690,7 +697,7 @@ public class CourseService {
         ArrayList<String> photos = new ArrayList<>();
         try {
             for (String walkPhoto : walkPhotos) {
-                photos.add(new AES128(encryptProperties.getKey()).decrypt(walkPhoto));
+                photos.add(AES128.decrypt(walkPhoto));
             }
         } catch (Exception exception) {
             log.info("사진 암호화 실패");

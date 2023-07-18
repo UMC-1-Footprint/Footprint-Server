@@ -1,33 +1,29 @@
 package com.umc.footprint.filter;
 
-import com.amazonaws.util.IOUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.utils.AES128;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.methods.HttpRequestWrapper;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
+import com.umc.footprint.utils.AES128;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class EncodingFilter implements Filter{
 
     private static final Logger logger = LoggerFactory.getLogger(DecodingFilter.class);
-    private final EncryptProperties encryptProperties;
-
-    public EncodingFilter(EncryptProperties encryptProperties){
-        this.encryptProperties = encryptProperties;
-    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -68,7 +64,7 @@ public class EncodingFilter implements Filter{
                 // 오류 안났을 때만
                 if (responseMessage.indexOf("result") != -1){
                     // result 부분 암호화 쌍따음표 붙여서
-                    String encodedResultPart = '\u0022' + (new AES128(encryptProperties.getKey()).encrypt(jsonObject.getString("result"))) + '\u0022';
+                    String encodedResultPart = '\u0022' + (AES128.encrypt(jsonObject.getString("result"))) + '\u0022';
 
                     // result 부분 암호화한걸로 치환
                     finalResponseMessage.replace(startIndex, endIndex, encodedResultPart);

@@ -1,24 +1,24 @@
 package com.umc.footprint.filter;
 
+import java.io.IOException;
 
-import com.umc.footprint.config.EncryptProperties;
-import lombok.extern.slf4j.Slf4j;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DecodingFilter implements Filter {
     private static final Logger logger = LoggerFactory.getLogger(DecodingFilter.class);
-    private final EncryptProperties encryptProperties;
     private static Boolean isEncrypted;
-
-    public DecodingFilter(EncryptProperties encryptProperties){
-        this.encryptProperties = encryptProperties;
-    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -36,7 +36,7 @@ public class DecodingFilter implements Filter {
             log.info(req.getMethod());
 
             if(req.getMethod().equals("POST") || req.getMethod().equals("PATCH")){
-                RequestBodyDecryptWrapper requestWrapper = new RequestBodyDecryptWrapper(req, encryptProperties);
+                RequestBodyDecryptWrapper requestWrapper = new RequestBodyDecryptWrapper(req);
 
                 chain.doFilter(requestWrapper, response);   // ** doFilter **
             } else {

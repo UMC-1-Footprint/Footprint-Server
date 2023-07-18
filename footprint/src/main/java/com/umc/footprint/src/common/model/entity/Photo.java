@@ -1,9 +1,22 @@
 package com.umc.footprint.src.common.model.entity;
 
-import com.umc.footprint.src.footprints.model.entity.Footprint;
-import lombok.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
 
-import javax.persistence.*;
+import com.umc.footprint.src.footprints.model.entity.Footprint;
+
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
@@ -32,11 +45,11 @@ public class Photo {
     private Footprint footprint;
 
     @Builder
-    public Photo(Integer photoIdx, String imageUrl, String status, Integer userIdx) {
-        this.photoIdx = photoIdx;
+    public Photo(String imageUrl, String status, Integer userIdx, Footprint footprint) {
         this.imageUrl = imageUrl;
         this.status = status;
         this.userIdx = userIdx;
+        this.footprint = footprint;
     }
 
     @PrePersist

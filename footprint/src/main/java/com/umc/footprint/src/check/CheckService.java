@@ -1,30 +1,30 @@
 package com.umc.footprint.src.check;
 
-import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.common.model.entity.Hashtag;
-import com.umc.footprint.src.common.repository.HashtagRepository;
-import com.umc.footprint.utils.AES128;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import static com.umc.footprint.config.BaseResponseStatus.*;
 
 import java.util.List;
 
-import static com.umc.footprint.config.BaseResponseStatus.DATABASE_ERROR;
+import org.springframework.stereotype.Service;
+
+import com.umc.footprint.config.BaseException;
+import com.umc.footprint.src.common.model.entity.Hashtag;
+import com.umc.footprint.src.common.repository.HashtagRepository;
+import com.umc.footprint.utils.AES128;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CheckService {
 
-    private final EncryptProperties encryptProperties;
     private final HashtagRepository hashtagRepository;
 
 
     public String checkEncryptWalk(String encryptString) throws BaseException {
         try{
-            String encryptResult = new AES128(encryptProperties.getKey()).encrypt(encryptString);
+            String encryptResult = AES128.encrypt(encryptString);
 
             log.info("encryptResult = {}",encryptResult );
 
@@ -37,7 +37,7 @@ public class CheckService {
     public String checkDecryptWalk(String decryptString) throws BaseException{
         try{
             System.out.println("decryptString = " + decryptString);
-            String decryptResult = new AES128(encryptProperties.getKey()).decrypt(decryptString);
+            String decryptResult = AES128.decrypt(decryptString);
 
             System.out.println("decryptResult = " + decryptResult);
 
@@ -51,7 +51,7 @@ public class CheckService {
         List<Hashtag> all = hashtagRepository.findAll();
         try {
             for (Hashtag encryptedHashtag : all) {
-                encryptedHashtag.decryptHashtag(new AES128(encryptProperties.getKey()).decrypt(encryptedHashtag.getHashtag()));
+                encryptedHashtag.decryptHashtag(AES128.decrypt(encryptedHashtag.getHashtag()));
             }
             hashtagRepository.saveAll(all);
         } catch (Exception exception) {

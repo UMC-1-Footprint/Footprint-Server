@@ -1,54 +1,53 @@
 package com.umc.footprint.src.users;
 
+import static com.umc.footprint.config.BaseResponseStatus.*;
 
-import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.common.model.vo.Hashtag;
-import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
-import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
-import com.umc.footprint.src.goal.model.vo.UserGoalDay;
-import com.umc.footprint.src.goal.model.vo.UserGoalTime;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
-import com.umc.footprint.src.users.model.dto.*;
-import com.umc.footprint.src.users.model.vo.ExistUser;
-import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
-import com.umc.footprint.src.users.model.vo.UserInfoStat;
-import com.umc.footprint.src.walks.model.vo.UserDateWalk;
-import com.umc.footprint.utils.AES128;
-import lombok.extern.slf4j.Slf4j;
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
+import com.umc.footprint.config.BaseException;
+import com.umc.footprint.src.common.model.vo.Hashtag;
+import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
+import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
+import com.umc.footprint.src.goal.model.vo.UserGoalDay;
+import com.umc.footprint.src.goal.model.vo.UserGoalTime;
+import com.umc.footprint.src.users.model.dto.GetTagRes;
+import com.umc.footprint.src.users.model.dto.GetUserDateRes;
+import com.umc.footprint.src.users.model.dto.GetUserRes;
+import com.umc.footprint.src.users.model.dto.GetUserTodayRes;
+import com.umc.footprint.src.users.model.dto.PatchUserInfoReq;
+import com.umc.footprint.src.users.model.vo.ExistUser;
+import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
+import com.umc.footprint.src.users.model.vo.UserInfoStat;
+import com.umc.footprint.src.walks.model.vo.UserDateWalk;
+import com.umc.footprint.utils.AES128;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.util.*;
-
-import static com.umc.footprint.config.BaseResponseStatus.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Repository
 public class UserDao {
     private JdbcTemplate jdbcTemplate;
-    private EncryptProperties encryptProperties;
 
     @Autowired
     public void setDataSource(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
-    @Autowired
-    public UserDao(EncryptProperties encryptProperties){
-        this.encryptProperties = encryptProperties;
     }
 
     /*
@@ -145,12 +144,12 @@ public class UserDao {
 
         try {
             for (UserDateWalk walk : userDateWalkInfo) {
-                walk.setDecryptedPathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl()));
+                walk.setDecryptedPathImageUrl(AES128.decrypt(walk.getPathImageUrl()));
                 hashtagList.add(new ArrayList<>());
                 for (Hashtag tag : entireHashtag) {
                     if (walk.getWalkIdx() == tag.getWalkIdx()) {
                         // hashtagList.get(hashtagList.size() - 1).add(tag.getHashtag());
-                        hashtagList.get(hashtagList.size() - 1).add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag()));
+                        hashtagList.get(hashtagList.size() - 1).add(AES128.decrypt(tag.getHashtag()));
                     }
                 }
                 getUserDateRes.add(new GetUserDateRes(walk, hashtagList.get(hashtagList.size() - 1)));

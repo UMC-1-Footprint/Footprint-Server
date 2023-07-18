@@ -1,5 +1,18 @@
 package com.umc.footprint.src.walks;
 
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -9,12 +22,10 @@ import com.umc.footprint.src.walks.model.dto.GetWalkInfoRes;
 import com.umc.footprint.src.walks.model.dto.PostWalkReq;
 import com.umc.footprint.src.walks.model.dto.PostWalkRes;
 import com.umc.footprint.utils.JwtService;
+
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,7 +43,9 @@ public class WalkController {
     @ResponseBody
     @PostMapping("") // (POST) 127.0.0.1:3000/walks/
     @ApiOperation(value = "산책 기록 저장")
-    public BaseResponse<List<PostWalkRes>> saveRecord(@RequestBody String request) throws BaseException, JsonProcessingException {
+    public BaseResponse<List<PostWalkRes>> saveRecord(@RequestBody @Valid String request) throws
+        BaseException,
+        JsonProcessingException {
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
@@ -45,7 +58,7 @@ public class WalkController {
         // userId로 userIdx 추출
 
         try {
-            List<PostWalkRes> postWalkResList = walkService.saveRecord(userId, postWalkReq);
+            List<PostWalkRes> postWalkResList = walkService.addWalk(userId, postWalkReq);
             return new BaseResponse<>(postWalkResList);
 
         } catch (BaseException exception) {

@@ -1,11 +1,22 @@
 package com.umc.footprint.src.footprints.model.vo;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.umc.footprint.src.common.model.entity.Hashtag;
+import com.umc.footprint.src.common.model.entity.Photo;
+import com.umc.footprint.src.common.model.entity.Tag;
+import com.umc.footprint.src.footprints.model.entity.Footprint;
+import com.umc.footprint.src.walks.CoordinateConvertor;
+import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.utils.AES128;
+
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
@@ -52,15 +63,53 @@ public class FootprintInfo {
         this.photos = photos;
     }
 
-
-
-
-
     public void setWalkIdxOfFootprint(int walkIdx) {
         this.walkIdx = walkIdx;
     }
 
     public void setFootprintIdx(int footprintIdx) {
         this.footprintIdx = footprintIdx;
+    }
+
+    public Footprint toEntity(Walk walk) {
+        return Footprint
+            .builder()
+            .coordinate(AES128.encrypt(CoordinateConvertor.fromPoint(coordinates)))
+            .record(AES128.encrypt(write))
+            .onWalk(onWalk)
+            .status("ACTIVE")
+            .walk(walk)
+            .build();
+    }
+
+    public List<Hashtag> toHashtag() {
+        return hashtagList.stream()
+            .map(hashtag -> Hashtag.builder().hashtag(hashtag).build())
+            .collect(Collectors.toList());
+    }
+
+    public List<Tag> toTags(Footprint footprint, List<Hashtag> hashtags, int userIdx) {
+        return hashtags.stream()
+            .map(hashtag ->
+                Tag.builder()
+                    .userIdx(userIdx)
+                    .status("ACTIVE")
+                    .walkIdx(walkIdx)
+                    .footprint(footprint)
+                    .hashtag(hashtag)
+                    .build())
+            .collect(Collectors.toList());
+    }
+
+    public List<Photo> toPhotos(int userIdx, Footprint footprint) {
+        return photos.stream()
+            .map(photo ->
+                Photo.builder()
+                    .imageUrl(AES128.encrypt(photo))
+                    .status("ACTIVE")
+                    .userIdx(userIdx)
+                    .footprint(footprint)
+                    .build())
+            .collect(Collectors.toList());
     }
 }

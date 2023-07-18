@@ -1,9 +1,20 @@
 package com.umc.footprint.src.footprints;
 
-import com.umc.footprint.config.BaseException;
 import static com.umc.footprint.config.BaseResponseStatus.*;
 
-import com.umc.footprint.config.EncryptProperties;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.umc.footprint.config.BaseException;
 import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.common.model.entity.Hashtag;
 import com.umc.footprint.src.common.model.entity.Photo;
@@ -13,27 +24,15 @@ import com.umc.footprint.src.common.repository.PhotoRepository;
 import com.umc.footprint.src.common.repository.TagRepository;
 import com.umc.footprint.src.footprints.model.dto.GetFootprintRes;
 import com.umc.footprint.src.footprints.model.dto.PatchFootprintReq;
-
 import com.umc.footprint.src.footprints.model.entity.Footprint;
 import com.umc.footprint.src.footprints.repository.FootprintRepository;
 import com.umc.footprint.src.users.repository.UserRepository;
 import com.umc.footprint.src.walks.WalkService;
-
 import com.umc.footprint.src.walks.model.entity.Walk;
 import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.web.multipart.MultipartFile;
 
-import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 
 @Service
@@ -47,10 +46,9 @@ public class FootprintService {
     private final WalkService walkService;
     private final UserRepository userRepository;
     private final AwsS3Service awsS3Service;
-    private final EncryptProperties encryptProperties;
 
     @Autowired
-    public FootprintService(WalkRepository walkRepository, FootprintRepository footprintRepository, PhotoRepository photoRepository, TagRepository tagRepository, HashtagRepository hashtagRepository, WalkService walkService, UserRepository userRepository, AwsS3Service awsS3Service, EncryptProperties encryptProperties) {
+    public FootprintService(WalkRepository walkRepository, FootprintRepository footprintRepository, PhotoRepository photoRepository, TagRepository tagRepository, HashtagRepository hashtagRepository, WalkService walkService, UserRepository userRepository, AwsS3Service awsS3Service) {
         this.walkRepository = walkRepository;
         this.footprintRepository = footprintRepository;
         this.photoRepository = photoRepository;
@@ -59,7 +57,6 @@ public class FootprintService {
         this.walkService = walkService;
         this.userRepository = userRepository;
         this.awsS3Service = awsS3Service;
-        this.encryptProperties = encryptProperties;
     }
 
 
@@ -73,7 +70,7 @@ public class FootprintService {
             // 발자국 수정 과정
             // 1. 본문 수정
             if(patchFootprintReq.getWrite() != null) {
-                footprintByNumber.recordDecrypt(new AES128(encryptProperties.getKey()).encrypt(patchFootprintReq.getWrite()));
+                footprintByNumber.recordDecrypt(AES128.encrypt(patchFootprintReq.getWrite()));
 
                 footprintRepository.save(footprintByNumber);
             }
@@ -131,7 +128,7 @@ public class FootprintService {
                     tag.setFootprint(footprintByNumber);
                     tag.setHashtag(hashtag);
                     tagList.add(tag);
-                    footprintByNumber.addTagList(tag);
+                    footprintByNumber.addTag(tag);
                 }
                 tagRepository.saveAll(tagList);
 
@@ -186,9 +183,9 @@ public class FootprintService {
         try {
             for (MultipartFile file : photos) {
                 String imgUrl = awsS3Service.uploadFile(file);
-                urlList.add(new AES128(encryptProperties.getKey()).encrypt(imgUrl));
+                urlList.add(AES128.encrypt(imgUrl));
                 Photo photo = Photo.builder()
-                        .imageUrl(new AES128(encryptProperties.getKey()).encrypt(imgUrl))
+                        .imageUrl(AES128.encrypt(imgUrl))
                         .status("ACTIVE")
                         .userIdx(userIdx)
                         .build();
@@ -228,7 +225,7 @@ public class FootprintService {
                 List<Photo> photoList = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
                 for (Photo photo : photoList) {
                     if (photo.getStatus().equals("ACTIVE")) {
-                        decryptPhotoList.add(new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl()));
+                        decryptPhotoList.add(AES128.decrypt(photo.getImageUrl()));
                     }
                 }
                 log.debug("태그 리스트 초기화");
@@ -241,7 +238,7 @@ public class FootprintService {
                 getFootprintRes.add(GetFootprintRes.builder()
                         .footprintIdx(footprint.getFootprintIdx())
                         .recordAt(footprint.getCreateAt())
-                        .write(new AES128(encryptProperties.getKey()).decrypt(footprint.getRecord()))
+                        .write(AES128.decrypt(footprint.getRecord()))
                         .photoList(decryptPhotoList)
                         .tagList(tagList)
                         .onWalk(footprint.getOnWalk())

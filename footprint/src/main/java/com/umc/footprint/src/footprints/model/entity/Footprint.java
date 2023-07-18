@@ -1,14 +1,29 @@
 package com.umc.footprint.src.footprints.model.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.umc.footprint.src.common.model.entity.Tag;
 import com.umc.footprint.src.walks.model.entity.Walk;
 import com.umc.footprint.utils.BaseEntity;
-import lombok.*;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
@@ -42,12 +57,12 @@ public class Footprint extends BaseEntity {
     private Walk walk;
 
     @Builder
-    public Footprint(Integer footprintIdx, String coordinate, String record, String status, Integer onWalk) {
-        this.footprintIdx = footprintIdx;
+    public Footprint(String coordinate, String record, String status, Integer onWalk, Walk walk) {
         this.coordinate = coordinate;
         this.record = record;
         this.status = status;
         this.onWalk = onWalk;
+        this.walk = walk;
     }
 
     @PrePersist
@@ -55,7 +70,7 @@ public class Footprint extends BaseEntity {
         this.status = this.status == null ? "ACTIVE" : this.status;
     }
 
-    public void addTagList(Tag tag) {
+    public void addTag(Tag tag) {
         this.getTagList().add(tag);
         // 무한 루프에 빠지지 않게 체크
         if (tag.getFootprint() != this) {
@@ -64,10 +79,11 @@ public class Footprint extends BaseEntity {
     }
 
     public void setWalk(Walk walk) {
-        this.walk = walk;
-        if (!walk.getFootprintList().contains(this)) {
-            walk.getFootprintList().add(this);
+        if (this.walk != null) {
+            this.walk.getFootprintList().remove(this);
         }
+        this.walk = walk;
+        walk.getFootprintList().add(this);
     }
 
 
